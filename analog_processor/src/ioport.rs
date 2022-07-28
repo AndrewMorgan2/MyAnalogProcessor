@@ -12,7 +12,7 @@ pub fn recieve_commands(commands: Vec<String> ) {
     let mut run_time_microseconds = 0;
     let mut transferres = 0;
     let mut program_counter: usize = "0".parse::<usize>().expect("Not a number!");
-    let mut done = false;
+    let done = false;
     //Run Cycles 
     while done == false {
         //Check for noise generated over time 
@@ -26,9 +26,13 @@ pub fn recieve_commands(commands: Vec<String> ) {
         }
         if opcode == "NOP"{
             println!("Stopping");
-            done = true;
             println!("----------");
             println!("Finished");
+            for register in registers {
+                print!("{}, ", register.to_string())
+            }
+            println!("");
+            break;
         }
         //Run a cycle
         arithmetic_logic_unit::run_cycle(&commands[program_counter], &mut registers, &mut program_counter);
