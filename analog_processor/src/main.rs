@@ -7,14 +7,17 @@ use std::{
 //Other files
 mod ioport;
 
-const OPCODE_LENGTH: usize = 4;
-
 fn main() {
     //Fetching program to run from user
     let mut line = String::new();
     println!("Enter program to run:");
     std::io::stdin().read_line(&mut line).unwrap();
 
+    let file: String;
+    //Run tests when program input is nothing
+    if line.len() < 2 {
+        file = "../tests/testCase1.txt".to_string();
+    } else {
     //Remove the new line character
     let len = line.len();
     line.truncate(len - 1);
@@ -22,29 +25,11 @@ fn main() {
     //Formatting the fetch file
     let director_string: &str = "../code/";
     let file_type_string: &str = ".txt";
-    let file = format!("{}{}{}",director_string, line, file_type_string);
-
+    file = format!("{}{}{}",director_string, line, file_type_string);
+    }
     //Get file 
     println!("Starting program {}", file);
     let commands = lines_from_file(file).expect("Could not load commands");
-    let all_opcode = lines_from_file("../all_opcodes.txt").expect("Could not load opcodes");
-
-    for command in commands.clone() {
-        //Check to see if the command is valid 
-        
-        //Loop though and see if the opcode is in all_opcode
-        let command_opcode_check = truncate(command.as_str(), OPCODE_LENGTH).to_string();
-        let mut opcode_seen = false;
-        for opcode in &all_opcode{
-            if opcode == &command_opcode_check {
-                opcode_seen = true;
-            }
-        }
-        if opcode_seen == false {
-            println!("{}", truncate(command.as_str(), OPCODE_LENGTH));
-            panic!("File had unknown opcodes");
-        }
-    }
 
     ioport::recieve_commands(commands);
 }
