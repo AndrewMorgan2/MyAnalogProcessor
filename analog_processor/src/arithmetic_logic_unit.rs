@@ -1,7 +1,8 @@
 
 //Run cycle returns program counter
 pub fn run_cycle(command: &String, registers: &mut Vec<f64>, program_counter: &mut usize){
-    println!("Run command {}", command);
+    
+    //println!("Run command {}", command);
     //Decode state 
     let command_parts = command.split_whitespace();
     let vec_command_parts = command_parts.collect::<Vec<&str>>();
@@ -79,21 +80,29 @@ pub fn run_cycle(command: &String, registers: &mut Vec<f64>, program_counter: &m
         *program_counter += 1;
     }
     else if opcode == "COMP"{
-        if destination.contains("r") == false || register_one.contains("r") == false || register_two.contains("r") == false{
+        if destination.contains("r") == false || register_one.contains("r") == false{
             panic!("COMP HAS BAD FORMATTING");
+        }
+        let compare_int:f64;
+        if register_two.contains("r") == true {
+            compare_int = registers[_reg_two_int];
+        } 
+        else {
+            compare_int = _reg_two_int as f64;
         }
 
         let ans:f64;
         //Cases for compare 
-        if _reg_one_int < _reg_two_int{
+        if registers[_reg_one_int] < compare_int{
             ans = -1.0;
         }
-        else if _reg_one_int > _reg_two_int{
+        else if registers[_reg_one_int] > compare_int{
             ans = 1.0;
         }
         else {
             ans = 0.0;
         }
+        //println!("COMP result {}", ans);
         (registers)[_reg_destination_int] = ans;
         *program_counter += 1;
     }
@@ -108,7 +117,8 @@ pub fn run_cycle(command: &String, registers: &mut Vec<f64>, program_counter: &m
         if destination.contains("r") == false || register_one.contains("r") == false{
             panic!("LD HAS BAD FORMATTING");
         }
-        registers[_reg_destination_int] = registers[registers[_reg_one_int] as usize];
+        registers[_reg_destination_int] = registers[_reg_one_int];
+        *program_counter += 1;
     }
     else if opcode == "BEQ"{
         if destination.contains("r") == true || register_one.contains("r") == false || register_two.contains("r") == true{
@@ -117,6 +127,7 @@ pub fn run_cycle(command: &String, registers: &mut Vec<f64>, program_counter: &m
 
         if registers[_reg_one_int] == _reg_two_int as f64{
             *program_counter = _reg_destination_int;
+            //println!("BEQ caused jump to {}", _reg_destination_int);
         } else {
             *program_counter += 1;
         }
@@ -128,6 +139,7 @@ pub fn run_cycle(command: &String, registers: &mut Vec<f64>, program_counter: &m
 
         if registers[_reg_one_int] != registers[_reg_two_int]{
             *program_counter = _reg_destination_int;
+            //println!("BNE caused jump to {}", _reg_destination_int);
         } else {
             *program_counter += 1;
         }

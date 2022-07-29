@@ -1,16 +1,25 @@
 #[path = "./arithmetic_logic_unit.rs"]
 mod arithmetic_logic_unit;
 
+//import standard
+use std::{
+    fs::File,
+    io::{self, BufRead, BufReader},
+    path::Path,
+};
+
 const CYCLE_TIME_MICROSECONDS: usize = 4;
 const OPCODE_LENGTH: usize = 4;
+const TOTAL_REGISTERS: usize = 16;
 
 //Called by processor
-pub fn recieve_commands(commands: Vec<String> ) {
+pub fn recieve_commands(commands: Vec<String>, test_number: usize) -> bool {
     println!("----------");
-    let mut registers: Vec<f64> = vec![0.0; 16];
+    let mut registers: Vec<f64> = vec![0.0; TOTAL_REGISTERS];
     let mut run_time_microseconds = 0;
     let mut transferres = 0;
     let mut program_counter: usize = "0".parse::<usize>().expect("Not a number!");
+    let mut testable_result: f64 = 0.0;
     let done = false;
     //Run Cycles 
     while done == false {
@@ -24,21 +33,72 @@ pub fn recieve_commands(commands: Vec<String> ) {
             transferres = transferres + 1;
         }
         if opcode == "NOP"{
-            println!("Run command {}", opcode);
             println!("Stopping");
             println!("----------");
             println!("Finished");
             print!("Registers: ");
+            let mut index: usize = 0;
+            let testable_result_index;
+            //Getting register to get test results from 
+            if test_number == 0 {testable_result_index = TOTAL_REGISTERS + 1}
+            else if test_number == 1 {testable_result_index = 2}
+            else if test_number == 2 {testable_result_index = 0}
+            else if test_number == 3 {testable_result_index = 0}
+            else {
+                panic!("TEST NUMBER NOT RECONGINESED")
+            }
+
             for register in registers {
+                if index ==  testable_result_index {
+                    testable_result = register
+                }
+                index += 1;
                 print!("{}, ", register.to_string())
             }
             println!("");
             println!("Runtime in micro seconds {} with {} transferres", run_time_microseconds, transferres);
+            let percentage_noise = (transferres as f64 * 0.4 as f64) as usize;
+            println!("Percentage noise generated: {}% meaning we would need to digitise the signal {} times", percentage_noise, percentage_noise / 2 );
             break;
         }
         //Run a cycle
         arithmetic_logic_unit::run_cycle(&commands[program_counter], &mut registers, &mut program_counter);
     }
+
+    //Check if we're in test mode 
+    if test_number == 1 {
+        let test_result_one: bool;
+        if testable_result == 265252859812191030000000000000000.0 as f64{
+            test_result_one = true;
+        } else {
+            test_result_one = false;
+        }
+        //Test 2
+        let commands_test_two = lines_from_file("../tests/testCase2.txt".to_string()).expect("Could not load commands");
+        println!("Starting program ../tests/testCase2.txt");
+        let test_result_two = recieve_commands(commands_test_two, 2);
+        //Test 3
+        let commands_test_three = lines_from_file("../tests/testCase3.txt".to_string()).expect("Could not load commands");
+        println!("Starting program ../tests/testCase3.txt");
+        let test_result_three = recieve_commands(commands_test_three, 3);
+        //Print test status 
+        println!("Test results: {}, {}, {}", test_result_one, test_result_two, test_result_three);
+    }
+    else if test_number == 2{
+        return testable_result == 701408733.0 as f64;
+    }
+    else if test_number == 3{
+        return testable_result == 507.0 as f64;
+    }
+    else if test_number != 0{
+        panic!("Test number not reconginsed");
+    }
+
+    return true;
+}
+
+fn lines_from_file(filename: impl AsRef<Path>) -> io::Result<Vec<String>> {
+    BufReader::new(File::open(filename)?).lines().collect()
 }
 
 pub fn truncate(s: &str, max_chars: usize) -> &str {

@@ -6,8 +6,8 @@ LDC r4 45
 COMP r5 r3 r4
 BEQ 12 r5 1 
 ADD r2 r1 r0
-LDC r0 r1
-LDC r1 r2
+LD r0 r1
+LD r1 r2
 ADDI r3 r3 1 
 JUMP 5
 NOP

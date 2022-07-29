@@ -13,11 +13,14 @@ fn main() {
     println!("Enter program to run:");
     std::io::stdin().read_line(&mut line).unwrap();
 
+    let test_number: usize;
     let file: String;
     //Run tests when program input is nothing
     if line.len() < 2 {
         file = "../tests/testCase1.txt".to_string();
+        test_number = 1;
     } else {
+    test_number = 0;
     //Remove the new line character
     let len = line.len();
     line.truncate(len - 1);
@@ -31,7 +34,13 @@ fn main() {
     println!("Starting program {}", file);
     let commands = lines_from_file(file).expect("Could not load commands");
 
-    ioport::recieve_commands(commands);
+    let result = ioport::recieve_commands(commands, test_number);
+
+    if result == true {
+        println!("Successful exuction");
+    } else {
+        println!("Something when wrong");
+    }
 }
 
 fn lines_from_file(filename: impl AsRef<Path>) -> io::Result<Vec<String>> {
